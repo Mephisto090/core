@@ -14,9 +14,12 @@ from tuya_device_handlers.definition.sensor import (
 )
 from tuya_device_handlers.device_wrapper.common import (
     DPCodeEnumWrapper,
+    DPCodeIntegerWrapper,
     DPCodeTypeInformationWrapper,
 )
 from tuya_device_handlers.device_wrapper.sensor import (
+    CatLitterBoxDurationRawWrapper,
+    CatLitterBoxWeightRawWrapper,
     DeltaIntegerWrapper,
     ElectricityApparentPowerHexStringWrapper,
     ElectricityApparentPowerJsonWrapper,
@@ -84,7 +87,7 @@ from .util import get_device_temp_unit_convert
 class TuyaSensorEntityDescription(TuyaEntityDescription, SensorEntityDescription):
     """Describes Tuya sensor entity."""
 
-    dpcode: DPCode | None = None
+    dpcode: DPCode | tuple[DPCode, ...] | None = None
     wrapper_class: tuple[type[DPCodeTypeInformationWrapper], ...] | None = None
 
 
@@ -1044,12 +1047,19 @@ SENSORS: dict[DeviceCategory, tuple[TuyaSensorEntityDescription, ...]] = {
     DeviceCategory.MSP: (
         TuyaSensorEntityDescription(
             key=DPCode.CAT_WEIGHT,
+            dpcode=(DPCode.CAT_DATA, DPCode.CAT_WEIGHT),
+            wrapper_class=(CatLitterBoxWeightRawWrapper, DPCodeIntegerWrapper),
             translation_key="cat_weight",
             device_class=SensorDeviceClass.WEIGHT,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         TuyaSensorEntityDescription(
             key=DPCode.EXCRETION_TIME_DAY,
+            dpcode=(DPCode.CAT_DATA, DPCode.EXCRETION_TIME_DAY),
+            wrapper_class=(
+                CatLitterBoxDurationRawWrapper,
+                DPCodeIntegerWrapper,
+            ),
             translation_key="excretion_time_day",
             device_class=SensorDeviceClass.DURATION,
             state_class=SensorStateClass.MEASUREMENT,
@@ -1057,6 +1067,10 @@ SENSORS: dict[DeviceCategory, tuple[TuyaSensorEntityDescription, ...]] = {
         TuyaSensorEntityDescription(
             key=DPCode.EXCRETION_TIMES_DAY,
             translation_key="excretion_times_day",
+        ),
+        TuyaSensorEntityDescription(
+            key=DPCode.EXCRETION_TIMES_TOTAL,
+            translation_key="excretion_times_total",
         ),
         TuyaSensorEntityDescription(
             key=DPCode.STATUS,

@@ -862,6 +862,9 @@
       "excretion_times_day": {
         "name": "Excretion times (day)"
       },
+      "excretion_times_total": {
+        "name": "Litter box uses"
+      },
       "feels_like_temperature": {
         "name": "Feels like"
       },

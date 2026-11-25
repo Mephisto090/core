@@ -166,6 +166,51 @@ async def test_selective_state_update(
     )
 
 
+@pytest.mark.parametrize("mock_device_code", ["msp_mzuro9jgjs7uiryn"])
+async def test_litter_box_raw_visit_data(
+    hass: HomeAssistant,
+    mock_manager: Manager,
+    mock_config_entry: MockConfigEntry,
+    mock_device: CustomerDevice,
+    notification_helper: TuyaNotificationHelper,
+) -> None:
+    """Test a litter box quirk exposing visit data from nonstandard DPs."""
+    mock_device.product_id = "unvgwjvxa1dgmzjz"
+    mock_device.status.update(
+        {
+            "cat_data": "AAAF2ABW",
+            "excretion_times_total": 1,
+            "status": "CAT_LEAVE",
+        }
+    )
+
+    await initialize_entry(hass, mock_manager, mock_config_entry, mock_device)
+    mock_device.status["excretion_times_day"] = 0
+    await notification_helper.async_send_device_update(
+        mock_device,
+        {"excretion_times_day": 2},
+        {"excretion_times_day": 1000},
+    )
+    await hass.async_block_till_done()
+
+    weight = hass.states.get("sensor.poopy_nano_2_cat_weight")
+    duration = hass.states.get("sensor.poopy_nano_2_excretion_duration")
+    daily_uses = hass.states.get("sensor.poopy_nano_2_excretion_times_day")
+    total_uses = hass.states.get("sensor.poopy_nano_2_litter_box_uses")
+    status = hass.states.get("sensor.poopy_nano_2_status")
+
+    assert weight is not None
+    assert weight.state == "1496"
+    assert duration is not None
+    assert duration.state == "86"
+    assert daily_uses is not None
+    assert daily_uses.state == "2.0"
+    assert total_uses is not None
+    assert total_uses.state == "0"
+    assert status is not None
+    assert status.state == "CAT_LEAVE"
+
+
 @pytest.mark.parametrize("mock_device_code", ["cz_guitoc9iylae4axs"])
 async def test_delta_report_sensor(
     hass: HomeAssistant,
